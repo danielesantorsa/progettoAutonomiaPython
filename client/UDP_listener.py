@@ -1,29 +1,20 @@
 import socket
 import threading
+import json
 
-class UDPListener:
-def init(self, udp_port, callback=None):
-self.udp_port = udp_port
-self.callback = callback
-self.running = True
-self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-self.udp_sock.bind(('0.0.0.0', self.udp_port))
-self.thread = threading.Thread(target=self.listen, daemon=True)
+//metodo costruttore
+def __init__(self,host,port): #definisce l'indirizzo e la porta del server da cui riceverà i messaggi
+    self.host=host
+    self.port = port
+    self.running = True
+    self.socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)# crea il socket
+    self.socket.bind((self.host,self.port))#lega il socket alla porta e al host specificati,progranna ascolta su quella porta i messaggi in arrivo via udp
 
-def start(self):
-    self.thread.start()
+def star_listening(self):
+    #thread di ascolto per le notifiche udp
+    listening_thread = threading.THREAD(target=self.listen_for_notifications)#thread che esegue listen_for_notifications
+    listening_thread.daemon = True #il thread termina quando il thread principale termina
+    listening_thread.start()#avvia il thread di ascolto
 
-def listen(self):
-    while self.running:
-        try:
-            data, _ = self.udp_sock.recvfrom(1024)
-            message = data.decode('utf-8')
-            print(f"[UDP] Notifica ricevuta: {message}")
-            if self.callback:
-                self.callback(message)
-        except:
-            break
-
-def stop(self):
-    self.running = False
-    self.udp_sock.close()
+def listen_for_notifications(self):
+    
