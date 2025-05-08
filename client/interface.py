@@ -12,4 +12,15 @@ class interfacciaDiGioco:
         self.larghezza_finestra = 800
         self.altezza_finestra = 600
         self.schermo = pygame.display.set_mode((self.larghezza_finestra, self.altezza_finestra))
-        pygame.display.set_caption("Interfaccia di Gioco")
+
+        # Imposta il titolo della finestra
+        pygame.display.set_caption("Battaglia Navale")
+
+        # Colori
+        self.colore_sfondo = (0, 0, 0)
+        self.colore_testo = (255, 255, 255)
+
+        # gestione degli errori 
+        
+
+         
