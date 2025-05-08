@@ -42,7 +42,7 @@ class GameServer:
 
         # Quando entrambi i client sono connessi, avvio lo stato del gioco
         self.global_state.game_state = GameState()
-        print("[SERVER] Partita inizializzata.")
+        print("Partita inizializzata.")
 
     def clientHandler(self, conn, addr, player_id):
         try:
@@ -50,7 +50,7 @@ class GameServer:
                 # Riceve i dati in formato JSON dal client
                 data = recv_json(conn)
                 if not data:
-                    print(f"[SERVER] Giocatore {player_id} si è disconnesso.")
+                    print(f"Giocatore {player_id} si è disconnesso.")
                     break
 
                 # Sezione protetta da mutex per gestire la mossa in modo sicuro
@@ -67,7 +67,7 @@ class GameServer:
                         send_json(opponent_conn, result["to_opponent"])
 
         except Exception as e:
-            print(f"[SERVER] Errore nel thread del Giocatore {player_id}: {e}")
+            print(f"Errore nel thread del Giocatore {player_id}: {e}")
         finally:
             conn.close()
             
