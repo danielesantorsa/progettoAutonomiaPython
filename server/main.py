@@ -22,12 +22,22 @@ class GameServer:
             # Aspetta che un client si connetta
             conn, addr = self.server_socket.accept()
             print(f"Giocatore {player_id} connesso da {addr}")
-
             # Aggiunge il giocatore alla lista globale
             self.global_state.add_player(conn, addr) 
-
             # Manda un messaggio di benvenuto al client con l'ID del giocatore
             send_json(conn, {"type": "welcome", "player":player_id})
+            # Crea un nuovo thread per gestire la comunicazione con il client
+            thread = threading.Thread(
+                # La funzione che gestisce la comunicazione
+                manage = self.clientHandler,
+                # Passa la connessione, l'indirizzo e l'ID del giocatore
+                give = (conn, addr, player_id),
+                # Imposta il thread come "daemon", in modo che si chiuda quando il programma principale termina
+                deamon = True
+            )
+        
+        # Avvia il thred
+        thread.start()
 
             
             
