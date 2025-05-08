@@ -1,7 +1,8 @@
 import socket
 import threading
+# Scopo: importa la classe GlobalState che gestisce lo 
+# stato condiviso del gioco (come la lista dei giocatori connessi, i turni, ecc.).
 from .state import GlobalState
-from .UDP_sender import send_UDP_notification
 from shared.protocol import recv_json, send_json
 from .game import GameState
 
@@ -29,15 +30,45 @@ class GameServer:
             # Crea un nuovo thread per gestire la comunicazione con il client
             thread = threading.Thread(
                 # La funzione che gestisce la comunicazione
-                manage = self.clientHandler,
+                target = self.clientHandler,
                 # Passa la connessione, l'indirizzo e l'ID del giocatore
-                give = (conn, addr, player_id),
+                args = (conn, addr, player_id),
                 # Imposta il thread come "daemon", in modo che si chiuda quando il programma principale termina
-                deamon = True
+                daemon = True
             )
         
         # Avvia il thred
         thread.start()
 
+        # Quando entrambi i client sono connessi, avvio lo stato del gioco
+        self.global_state.game_state = GameState()
+        print("[SERVER] Partita inizializzata.")
+
+    def clientHandler(self, conn, addr, player_id):
+        try:
+            while True:
+                # Riceve i dati in formato JSON dal client
+                data = recv_json(conn)
+                if not data:
+                    print(f"[SERVER] Giocatore {player_id} si è disconnesso.")
+                    break
+
+                # Sezione protetta da mutex per gestire la mossa in modo sicuro
+                with self.lock:
+                    # Calcola il risultato della mossa
+                    result = self.global_state.game_state.process_move(player_id, data)
+
+                    # Risposta al giocatore che ha fatto la mossa
+                    send_json(conn, result["to_player"])
+
+                    # Risposta all’avversario
+                    opponent_conn = self.global_state.get_opponent_conn(player_id)
+                    if opponent_conn:
+                        send_json(opponent_conn, result["to_opponent"])
+
+        except Exception as e:
+            print(f"[SERVER] Errore nel thread del Giocatore {player_id}: {e}")
+        finally:
+            conn.close()
             
             
