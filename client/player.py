@@ -4,15 +4,15 @@ import threading
 from shared.protocol import send_json, recv_json
 
 class PlayerClient:
-def init(self, server_ip, server_port, udp_port):
-self.server_addr = (server_ip, server_port)
-self.udp_port = udp_port
-self.tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-self.udp_sock.bind(('0.0.0.0', self.udp_port))
-self.udp_thread = None
-self.running = True
-self.player_id = None
+    def init(self, server_ip, server_port, udp_port):
+        self.server_addr = (server_ip, server_port)
+        self.udp_port = udp_port
+        self.tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp_sock.bind(('0.0.0.0', self.udp_port))
+        self.udp_thread = None
+        self.running = True
+        self.player_id = None
 
 def connect(self):
     self.tcp_sock.connect(self.server_addr)
