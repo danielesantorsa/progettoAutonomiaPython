@@ -1,6 +1,6 @@
 # client/main.py
 import threading
-from udp_listener import UDPListener
+from UDP_listener import UDPListener
 from tcp_client import TCPClient
 from game_interface import GameInterface
 
