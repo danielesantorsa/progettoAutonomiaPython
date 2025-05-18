@@ -1,11 +1,9 @@
 import pygame
 import sys
-#import sys per interrompere il programma in modo pulito
 
-class interfacciaDiGioco:
+class InterfacciaDiGioco:
     def __init__(self):
-        
-        #inizializzazione pygame
+        # Inizializzazione pygame
         pygame.init()
 
         # Imposta le dimensioni della finestra
@@ -20,7 +18,34 @@ class interfacciaDiGioco:
         self.colore_sfondo = (0, 0, 0)
         self.colore_testo = (255, 255, 255)
 
-        # gestione degli errori 
-        
+        # Oggetto player
+        self.player = pygame.Rect(300, 250, 50, 50)
 
-         
+    def run(self):
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+
+            # Riempie lo sfondo
+            self.schermo.fill(self.colore_sfondo)
+
+            # Disegna il player
+            pygame.draw.rect(self.schermo, (255, 0, 0), self.player)
+
+            key = pygame.key.get_pressed()
+            if key[pygame.k_a] == True:
+                self.player.move_ip_(-1, 0)
+                                                                                                                   
+
+            # Aggiorna lo schermo
+            pygame.display.update()
+
+        pygame.quit()
+        sys.exit()
+
+# Avvio del gioco
+if __name__ == "__main__":
+    gioco = InterfacciaDiGioco()
+    gioco.run()
