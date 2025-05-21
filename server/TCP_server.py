@@ -1,48 +1,47 @@
-# server/tcp_server.py
 import socket
 import threading
-from game import GameManager
+from game import Game
 
 class TCPServer:
-    def __init__(self, host='0.0.0.0', port=12345):
+    def __init__(self, game: Game, host='0.0.0.0', port=5000):
+        self.game = game
         self.host = host
         self.port = port
-        self.game_manager = GameManager()
-        self.clients = []
-        self.lock = threading.Lock()
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def start_server(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-            server_socket.bind((self.host, self.port))
-            server_socket.listen()
-            print(f"Server in ascolto su {self.host}:{self.port}")
+        self.server_socket.bind((self.host, self.port))
+        self.server_socket.listen(2)
+        print(f"[TCP] In ascolto su {self.host}:{self.port}...")
 
-            while True:
-                client_conn, client_addr = server_socket.accept()
-                with self.lock:
-                    if len(self.clients) >= 2:
-                        print(f"Connessione da {client_addr} rifiutata (server pieno)")
-                        client_conn.sendall(b"SERVER_FULL")
-                        client_conn.close()
-                        continue
+        while True:
+            conn, addr = self.server_socket.accept()
+            print(f"[TCP] Connessione ricevuta da {addr}")
 
-                    self.clients.append(client_conn)
-                    print(f"Giocatore connesso da {client_addr}")
-                    self.game_manager.add_player(client_conn)
-                    threading.Thread(target=self.handle_client, args=(client_conn,), daemon=True).start()
+            if not self.game.add_player(conn, addr):
+                conn.sendall(b"SERVER PIENO\n")
+                conn.close()
+                continue
 
-    def handle_client(self, conn):
+            player_index = len(self.game.players) - 1
+            client_thread = threading.Thread(target=self.handle_client, args=(conn, player_index), daemon=True)
+            client_thread.start()
+
+    def handle_client(self, conn, player_index):
+        self.game.wait_for_ready()
+        conn.sendall(b"INIZIO\n")
+
         try:
             while True:
                 data = conn.recv(1024)
                 if not data:
                     break
-                self.game_manager.process_message(conn, data)
-        except Exception as e:
-            print(f"Errore client: {e}")
+
+                move = data.decode().strip()
+                result = self.game.process_move(player_index, move)
+                conn.sendall(result.encode() + b"\n")
+        except ConnectionError:
+            print(f"[TCP] Disconnessione del giocatore {player_index}")
         finally:
-            with self.lock:
-                if conn in self.clients:
-                    self.clients.remove(conn)
-            self.game_manager.remove_player(conn)
             conn.close()
