@@ -1,25 +1,19 @@
-# client/main.py
-import threading
+from game_interface import InterfacciaDiGioco
 from UDP_listener import UDPListener
 from tcp_client import TCPClient
-from game_interface import GameInterface
 
 def main():
-    udp_listener = UDPListener(port=12346)
-    server_ip = udp_listener.discover_server()
-    if not server_ip:
-        print("Nessun server trovato.")
-        return
+    # 1. Ascolta il messaggio broadcast del server
+    udp = UDPListener()
+    server_ip, server_port = udp.attendi_server()
 
-    print(f"Server trovato: {server_ip}")
+    # 2. Connessione TCP al server
+    tcp = TCPClient(server_ip, server_port)
+    tcp.connetti()
 
-    client = TCPClient(server_ip=server_ip, server_port=12345)
-    game_interface = GameInterface(client)
-
-    client_thread = threading.Thread(target=client.connect_and_listen, daemon=True)
-    client_thread.start()
-
-    game_interface.run()
+    # 3. Avvia il gioco (puoi collegare TCPClient più avanti)
+    gioco = InterfacciaDiGioco()
+    gioco.run()
 
 if __name__ == "__main__":
     main()
