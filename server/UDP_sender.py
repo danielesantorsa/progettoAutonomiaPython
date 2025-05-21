@@ -10,34 +10,18 @@ class UDPSender:
         self.interval = interval
 
     def start_broadcast(self):
-        # Crea socket UDP
         udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
         message = f"{self.tcp_port}".encode("utf-8")
 
         while True:
             try:
-                # Cicla su tutte le interfacce di rete disponibili
                 for interface, addrs in psutil.net_if_addrs().items():
                     for addr in addrs:
                         if addr.family == socket.AF_INET and not addr.address.startswith("127."):
-                            # Usa l'indirizzo broadcast per inviare il messaggio
-                            udp_socket.sendto(message, (addr.broadcast, self.udp_port))
+                            if addr.broadcast:  # <--- FIX qui
+                                udp_socket.sendto(message, (addr.broadcast, self.udp_port))
             except Exception as e:
                 print(f"[UDP] Errore durante il broadcast: {e}")
 
             sleep(self.interval)
-
-
-# Esempio di utilizzo (se eseguito direttamente)
-if __name__ == "__main__":
-    sender = UDPSender(tcp_port=5000, udp_port=6000, interval=5)
-    broadcast_thread = threading.Thread(target=sender.start_broadcast, daemon=True)
-    broadcast_thread.start()
-
-    try:
-        while True:
-            sleep(1)
-    except KeyboardInterrupt:
-        print("\n[UDP] Interrotto manualmente.")
