@@ -1,53 +1,43 @@
 import threading
-from game import Gamemanager
 
-class GameManager:
+class Game:
     def __init__(self):
-        self.players = {}    
-        self.turn = None
+        self.players = []  # Lista delle socket dei giocatori
         self.lock = threading.Lock()
+        self.ready_event = threading.Event()
+        self.turn = 0
+        self.board_state = [{}, {}]  # Stato semplificato per esempio
 
-    def add_player(self, conn):
+    def add_player(self, conn, addr):
         with self.lock:
-            player_id = len(self.players) + 1
-            self.players[conn] = player_id
-            print(f"Giocatore {player_id} aggiunto")
+            if len(self.players) >= 2:
+                return False  # Troppi giocatori
+            self.players.append((conn, addr))
+            print(f"[GAME] Giocatore aggiunto: {addr}")
             if len(self.players) == 2:
-                self.start_game()
+                print("[GAME] Entrambi i giocatori connessi. Inizio partita.")
+                self.ready_event.set()  # Segnala inizio gioco
+            return True
 
-    def start_game(self):
-        print("Entrambi i giocatori connessi. Inizio partita!")
-        for conn, pid in self.players.items():
-            msg = f"START {pid}".encode()
-            conn.sendall(msg)
-        self.turn = 1  # Inizia il player 1
+    def wait_for_ready(self):
+        self.ready_event.wait()  # Blocco finché non ci sono 2 giocatori
 
-    def process_message(self, conn, message):
+    def get_opponent_index(self, player_index):
+        return 1 - player_index
+
+    def process_move(self, player_index, data):
         with self.lock:
-            player_id = self.players.get(conn)
-            if player_id != self.turn:
-                conn.sendall(b"NOT_YOUR_TURN")
-                return
+            if player_index != self.turn:
+                return "WAIT"
 
-            # Riceviamo una mossa: es "MOVE 3 5"
-            decoded = message.decode()
-            if decoded.startswith("MOVE"):
-                print(f"Player {player_id} ha inviato: {decoded}")
-                for other_conn in self.players.keys():
-                    if other_conn != conn:
-                        other_conn.sendall(message)
+            # Esempio semplice: si memorizza una mossa (tipo "B4")
+            self.board_state[player_index][data] = True
+            self.turn = self.get_opponent_index(player_index)
+            return "OK"
 
-                # Passa il turno
-                self.turn = 2 if self.turn == 1 else 1
-
-            elif decoded == "QUIT":
-                self.remove_player(conn)
-
-    def remove_player(self, conn):
+    def get_status(self):
         with self.lock:
-            if conn in self.players:
-                player_id = self.players[conn]
-                print(f"Player {player_id} disconnesso")
-                del self.players[conn]
-                for other_conn in self.players.keys():
-                    other_conn.sendall(b"OTHER_PLAYER_LEFT")
+            return {
+                'turn': self.turn,
+                'players': len(self.players)
+            }
