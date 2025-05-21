@@ -1,9 +1,3 @@
-Appunti da usare dopo per fare la documentazione
-L'obbiettivo è quello di creare un gioco,chiamato Battaglia Navale,utilizzando TCP e UDP 
-processo tecnico
-abbiamo creato i componenti principali client server e shared successivamente per 
-
-client ho fatto un main,un player,un interfaccia e un UDP_listener.py
-server ho fatto game,main e state
-shared ho fatto costants e protocol
-
+Creare battaglia navale multiplayer (max 2 giocatori, se un altro giocatore si collega viene buttato fuori), quando i due giocatori posizionano le barche il gioco inizia.
+il giocatore seleziona un quadradrato della griglia, lo invia all'avversario e viene effettuato un check, se in quel quadrato è stata posizionata una barca, la barca è stata abbattuta e quindi compare un pallino verde.
+si vince quando si abbattono tutte le barche dell'avversario. per l'nvio delle coordinate del quadrato viene utilizzato TCP, e viene utilizzato UDP per il volantinaggio IP broadcast (cioè il server invia in broadcast l'ip del TCP, avendo specificato già la porta in precedenza il client riceve il messaggio broadcast e si connette al server TCP)
