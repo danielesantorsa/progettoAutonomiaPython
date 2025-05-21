@@ -94,7 +94,7 @@ class InterfacciaDiGioco:
 
         # --- FASE 2: ATTACCO ---
         else:
-            # Controlla se il click è nella griglia di sinistra
+            # Controlla se il click è nella griglia di sinistra  
             if offset_attacco_x <= x < offset_attacco_x + 10 * self.dimensione_cella and \
                offset_y <= y < offset_y + 10 * self.dimensione_cella:
 

@@ -1,7 +1,7 @@
 import socket
 
 class UDPListener:
-    def __init__(self, porta=12345):
+    def __init__(self, porta=5000):
         self.porta = porta
 
     def attendi_server(self):
